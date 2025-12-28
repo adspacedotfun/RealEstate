@@ -82,10 +82,26 @@
           <a href="${advertiserLink}" target="_blank" rel="noopener noreferrer" class="adspace-link">
             <img src="${imageUrl}" 
                  alt="Advertisement" 
-                 class="adspace-image"
-                 onerror="this.onerror=null;this.src=this.src.replace('cloudflare-ipfs.com','ipfs.io')">
+                 class="adspace-image">
           </a>
         `;
+
+        // Add error handler using JavaScript (not inline) to avoid CSP issues
+        const img = container.querySelector(".adspace-image");
+        if (img) {
+          img.addEventListener("error", function () {
+            // Fallback to ipfs.io if cloudflare fails
+            if (this.src.includes("cloudflare-ipfs.com")) {
+              this.src = this.src.replace("cloudflare-ipfs.com", "ipfs.io");
+            } else if (this.src.includes("ipfs.io")) {
+              // Try gateway.pinata.cloud as second fallback
+              const hash = this.src.split("/ipfs/")[1];
+              if (hash) {
+                this.src = `https://gateway.pinata.cloud/ipfs/${hash}`;
+              }
+            }
+          });
+        }
       } else {
         container.innerHTML =
           '<div class="adspace-empty">No active campaign</div>';
