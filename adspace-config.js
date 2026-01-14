@@ -9,5 +9,5 @@ const ADSPACE_CONFIG = {
   REFRESH_INTERVAL: 30000, // 30 seconds
 
   // ⚠️ IMPORTANT: Replace with your Space ID from adspace.fun dashboard
-  SPACE_ID: 3, // Your AdSpace Space ID
+  SPACE_ID: 5, // Your AdSpace Space ID
 };
