@@ -65,11 +65,27 @@
       container.innerHTML = '<div class="adspace-loading">Loading ad...</div>';
 
       const provider = new ethers.providers.JsonRpcProvider(RPC_ENDPOINT);
+
+      // Debug: Log configuration
+      console.log("AdSpace Widget Debug:", {
+        contractAddress: CONTRACT_ADDRESS,
+        spaceId: spaceId,
+        rpcEndpoint: RPC_ENDPOINT,
+      });
+
       const contract = new ethers.Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
         provider
       );
+
+      // Verify contract code exists at address
+      const code = await provider.getCode(CONTRACT_ADDRESS);
+      if (code === "0x") {
+        throw new Error(
+          `No contract found at address ${CONTRACT_ADDRESS}. Please verify the contract address.`
+        );
+      }
 
       const result = await contract.getActiveAdImage(spaceId);
       const campaignId = result[2].toString();
@@ -108,12 +124,33 @@
       }
     } catch (err) {
       console.error("AdSpace Widget Error:", err);
+      console.error("Error details:", {
+        code: err.code,
+        reason: err.reason,
+        message: err.message,
+        data: err.data,
+      });
+
       if (err.code === "CALL_EXCEPTION") {
+        // Check if the error is about invalid ad space
+        const errorMessage = err.reason || err.message || "";
+        if (errorMessage.includes("Invalid ad space")) {
+          container.innerHTML =
+            '<div class="adspace-error">⚠️ Invalid Space ID (ID: ' +
+            spaceId +
+            "). Please verify:<br>1. Space ID is correct in adspace-config.js<br>2. Contract address matches your network<br>3. Space exists on this contract</div>";
+        } else {
+          container.innerHTML =
+            '<div class="adspace-empty">No active campaign</div>';
+        }
+      } else if (err.message && err.message.includes("No contract found")) {
         container.innerHTML =
-          '<div class="adspace-empty">No active campaign</div>';
+          '<div class="adspace-error">⚠️ Contract not found at address. Please verify CONTRACT_ADDRESS in adspace-config.js</div>';
       } else {
         container.innerHTML =
-          '<div class="adspace-error">⚠️ Failed to load ad</div>';
+          '<div class="adspace-error">⚠️ Failed to load ad: ' +
+          (err.message || "Unknown error") +
+          "</div>";
       }
     }
   }
