@@ -73,11 +73,11 @@
 
       const result = await contract.getActiveAdImage(spaceId);
       const campaignId = result[2].toString();
+      const imageUrl = convertIPFS(result[0]);
+      const advertiserLink = result[1];
 
-      if (campaignId !== "0" && campaignId !== "0x0") {
-        const imageUrl = convertIPFS(result[0]);
-        const advertiserLink = result[1];
-
+      // Display image and link (either active campaign or default)
+      if (imageUrl && advertiserLink) {
         container.innerHTML = `
           <a href="${advertiserLink}" target="_blank" rel="noopener noreferrer" class="adspace-link">
             <img src="${imageUrl}" 
